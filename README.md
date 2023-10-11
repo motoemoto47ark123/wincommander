@@ -19,6 +19,8 @@ To install the application, follow these steps:
 2. Extract the ZIP file to your desired location.
 3. Run `wincommander.exe`.
 
+**Warning:** Some scripts require administrator privileges to run correctly. Therefore, you may need to run `wincommander.exe` as an administrator. To do this, right-click on `wincommander.exe` and select 'Run as administrator'.
+
 ## Usage
 
 When you open the application, you will see a list of scripts on the left side. You can select a script to view its details on the right side. If you want to run a script, click the 'Run' button.
