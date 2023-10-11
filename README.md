@@ -1,6 +1,6 @@
 # WinCommander
 
-WinCommander is a PyQt5-based application that helps you manage and run various scripts to fix common issues on Windows.
+WinCommander is a Python-based application that helps you manage and run various scripts to fix common issues on Windows.
 
 ## Features
 
