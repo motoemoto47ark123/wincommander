@@ -81,8 +81,11 @@ class MyApp(QMainWindow):
         self.programs_info = {
             "Home Page": {
                 "title": "",
-                "info": "Welcome to wincommander! This application helps you manage and run various scripts to fix common issues on Windows.\n\n"
-                        "Use the left panel to search for a specific program or select one from the list. The right panel displays details about the selected program, and you can run it by clicking the 'Run' button.\n\n"
+                "info": "Welcome to wincommander! This application helps you run various items on the list to fix common issues on Windows.\n\n"
+                        "Use the left panel to search for a specific item or select one from the list. The right panel displays details about the selected item, and you can run it by clicking the 'Run' button.\n\n"
+                        "Remember, not all Windows problems are the same. If one item doesn't work, try another one. We've included multiple items for some common issues to give you more options. For example, if the 'Reset audio' item doesn't work, you can try the 'Reset audio 2' item.\n\n"
+                        "Make sure to select the item that best matches your problem. If you're having audio issues, try one of the audio items. If you're unsure, don't worry! Just give it a try and see if it helps.\n\n"
+                        "This tool is designed to be user-friendly, even for those who are not very tech-savvy. So don't worry if you're not a computer expert - we've got you covered! If you're still having trouble, feel free to email us or visit our website at wincommander.us.to for more help.\n\n"
                         "Feel free to explore and enhance your Windows experience with wincommander!",
                 "command": None,
                 "admin_required": False,
@@ -109,6 +112,14 @@ class MyApp(QMainWindow):
                         "Command: `net stop audiosrv && net stop AudioEndpointBuilder && net start audiosrv && net start AudioEndpointBuilder`\n\n"
                         "Administrator Privileges: Required",
                 "command": "net stop audiosrv && net stop AudioEndpointBuilder && net start audiosrv && net start AudioEndpointBuilder",
+                "admin_required": True,
+            },
+            "Reset audio 2": {
+                "title": "",
+                "info": "This is another script to fix sound problems. If 'Reset audio' didn't work, try this one. It just starts the sound services without turning them off first.\n\n"
+                        "Command: `net start audiosrv && net start AudioEndpointBuilder`\n\n"
+                        "Administrator Privileges: Required",
+                "command": "net start audiosrv && net start AudioEndpointBuilder",
                 "admin_required": True,
             },
             
