@@ -3,7 +3,16 @@ import subprocess
 from PyQt5.QtWidgets import QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QListWidget, QLabel, QLineEdit, QPushButton, QDesktopWidget, QTextEdit
 from PyQt5.QtGui import QFont, QColor
 from ctypes import windll
-from PyQt5.QtCore import QTimer
+from PyQt5.QtCore import QTimer, QThreadPool, QRunnable
+import mysql.connector
+from mysql.connector import Error
+
+# Database connection details
+DB_HOST = ""
+DB_USER = ""
+DB_PASSWORD = ""
+DB_NAME = ""
+DB_PORT = 3305
 
 # Check if the script is running with administrator privileges
 def is_admin():
@@ -21,6 +30,34 @@ if not is_admin():
     except Exception as e:
         print(f"Error relaunching as admin: {e}")
     sys.exit(0)  # Exit the non-admin instance
+
+def create_database_connection():
+    """Create a database connection to the MySQL server."""
+    connection = None
+    try:
+        connection = mysql.connector.connect(
+            host=DB_HOST,
+            user=DB_USER,
+            passwd=DB_PASSWORD,
+            database=DB_NAME,
+            port=DB_PORT
+        )
+        print("MySQL Database connection successful")
+    except Error as e:
+        print(f"The error '{e}' occurred")
+    return connection
+
+def fetch_programs_info(connection):
+    """Fetch programs information from the database."""
+    cursor = connection.cursor(dictionary=True)
+    query = "SELECT name, title, info, command, admin_required FROM scripts"
+    try:
+        cursor.execute(query)
+        result = cursor.fetchall()
+        return {item['name']: item for item in result}
+    except Error as e:
+        print(f"Error fetching data from MySQL table: {e}")
+        return {}
 
 class MyApp(QMainWindow):
     def __init__(self):
@@ -77,54 +114,13 @@ class MyApp(QMainWindow):
 
         layout.addWidget(right_panel, stretch=2)
 
-        # Program Information
-        self.programs_info = {
-            "Home Page": {
-                "title": "",
-                "info": "Welcome to wincommander! This application helps you run various items on the list to fix common issues on Windows.\n\n"
-                        "Use the left panel to search for a specific item or select one from the list. The right panel displays details about the selected item, and you can run it by clicking the 'Run' button.\n\n"
-                        "Remember, not all Windows problems are the same. If one item doesn't work, try another one. We've included multiple items for some common issues to give you more options. For example, if the 'Reset audio' item doesn't work, you can try the 'Reset audio 2' item.\n\n"
-                        "Make sure to select the item that best matches your problem. If you're having audio issues, try one of the audio items. If you're unsure, don't worry! Just give it a try and see if it helps.\n\n"
-                        "This tool is designed to be user-friendly, even for those who are not very tech-savvy. So don't worry if you're not a computer expert - we've got you covered! If you're still having trouble, feel free to email us or visit our website at wincommander.us.to for more help.\n\n"
-                        "Feel free to explore and enhance your Windows experience with wincommander!",
-                "command": None,
-                "admin_required": False,
-            },
-            "windows-search-reset": {
-                "title": "",
-                "info": "This script restarts Windows Explorer.\n\n"
-                        "Command: `taskkill /f /im explorer.exe && start explorer.exe`\n\n"
-                        "Administrator Privileges: Required",
-                "command": 'taskkill /f /im explorer.exe && start explorer.exe',
-                "admin_required": True,
-            },
-            "Restart Internet Service": {
-                "title": "",
-                "info": "This script restarts the Internet service to fix common Internet issues in Windows.\n\n"
-                        "Command: `net stop wuauserv && net start wuauserv`\n\n"
-                        "Administrator Privileges: Required",
-                "command": "net stop wuauserv && net start wuauserv",
-                "admin_required": True,
-            },
-            "Reset audio": {
-                "title": "",
-                "info": "This script fixes sound problems. It turns off and then turns on the sound services.\n\n"
-                        "Command: `net stop audiosrv && net stop AudioEndpointBuilder && net start audiosrv && net start AudioEndpointBuilder`\n\n"
-                        "Administrator Privileges: Required",
-                "command": "net stop audiosrv && net stop AudioEndpointBuilder && net start audiosrv && net start AudioEndpointBuilder",
-                "admin_required": True,
-            },
-            "Reset audio 2": {
-                "title": "",
-                "info": "This is another script to fix sound problems. If 'Reset audio' didn't work, try this one. It just starts the sound services without turning them off first.\n\n"
-                        "Command: `net start audiosrv && net start AudioEndpointBuilder`\n\n"
-                        "Administrator Privileges: Required",
-                "command": "net start audiosrv && net start AudioEndpointBuilder",
-                "admin_required": True,
-            },
-            
-            # Add information for other programs...
-        }
+        # Fetch and display program information from the database
+        connection = create_database_connection()
+        if connection:
+            self.programs_info = fetch_programs_info(connection)
+            connection.close()
+        else:
+            self.programs_info = {}
 
         for program in self.programs_info:
             self.listbox.addItem(program)
@@ -136,6 +132,9 @@ class MyApp(QMainWindow):
         self.search_entry.textChanged.connect(self.update_listbox)
         self.run_button.clicked.connect(self.run_command)
         self.show_program_details()
+
+        # Thread pool for running multiple scripts concurrently
+        self.thread_pool = QThreadPool()
 
     def center_on_screen(self):
         frame_geometry = self.frameGeometry()
@@ -177,17 +176,26 @@ class MyApp(QMainWindow):
             if command:
                 print(f"Running command: {command}")
                 self.run_button.setText("Running...")
-                QTimer.singleShot(12000, lambda: self.run_button.setText("Script is done running."))
+                runnable = CommandRunner(command, admin_required)
+                self.thread_pool.start(runnable)
                 QTimer.singleShot(17000, lambda: self.run_button.setText("Run"))
-                if admin_required:
-                    run_with_uac(command)
-                else:
-                    subprocess.Popen(command, shell=True)
 
             else:
                 print("No command to run.")
         except Exception as e:
             print(f"Error running command: {e}")
+
+class CommandRunner(QRunnable):
+    def __init__(self, command, admin_required):
+        super().__init__()
+        self.command = command
+        self.admin_required = admin_required
+
+    def run(self):
+        if self.admin_required:
+            run_with_uac(self.command)
+        else:
+            subprocess.Popen(self.command, shell=True)
 
 def run_with_uac(command):
     subprocess.Popen(command, shell=True)
@@ -197,5 +205,3 @@ if __name__ == "__main__":
     window = MyApp()
     window.show()
     sys.exit(app.exec_())
-
-
