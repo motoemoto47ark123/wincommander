@@ -1,25 +1,32 @@
 import sys
 import subprocess
+import logging
 from PyQt5.QtWidgets import QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QListWidget, QLabel, QLineEdit, QPushButton, QDesktopWidget, QTextEdit
 from PyQt5.QtGui import QFont, QColor
 from ctypes import windll
 from PyQt5.QtCore import QTimer, QThreadPool, QRunnable
-import mysql.connector
-from mysql.connector import Error
+import psycopg2
+from psycopg2 import OperationalError, extras
+import os
+
+# Setup logging
+log_directory = os.path.join("C:", os.sep, "Users", "Public", "Documents", "wincommander")
+if not os.path.exists(log_directory):
+    os.makedirs(log_directory)
+log_filename = os.path.join(log_directory, 'wincommander.log')
+logging.basicConfig(filename=log_filename, level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
 
 # Database connection details
-DB_HOST = ""
-DB_USER = ""
-DB_PASSWORD = ""
-DB_NAME = ""
-DB_PORT = 3305
+DB_CONNECTION_STRING = ""
 
 # Check if the script is running with administrator privileges
 def is_admin():
     try:
-        return windll.shell32.IsUserAnAdmin()
+        result = windll.shell32.IsUserAnAdmin()
+        logging.info("Checked for administrator privileges: Admin={}".format(result))
+        return result
     except Exception as e:
-        print(f"Error checking administrator privileges: {e}")
+        logging.error("Error checking administrator privileges: {}".format(e))
         return False
 
 if not is_admin():
@@ -27,36 +34,32 @@ if not is_admin():
     script_path = sys.argv[0]
     try:
         windll.shell32.ShellExecuteW(None, "runas", sys.executable, script_path, None, 1)
+        logging.info("Relaunched script with admin privileges.")
     except Exception as e:
-        print(f"Error relaunching as admin: {e}")
+        logging.error("Error relaunching as admin: {}".format(e))
     sys.exit(0)  # Exit the non-admin instance
 
 def create_database_connection():
-    """Create a database connection to the MySQL server."""
+    """Create a database connection to the PostgreSQL server."""
     connection = None
     try:
-        connection = mysql.connector.connect(
-            host=DB_HOST,
-            user=DB_USER,
-            passwd=DB_PASSWORD,
-            database=DB_NAME,
-            port=DB_PORT
-        )
-        print("MySQL Database connection successful")
-    except Error as e:
-        print(f"The error '{e}' occurred")
+        connection = psycopg2.connect(DB_CONNECTION_STRING)
+        logging.info("PostgreSQL Database connection successful")
+    except OperationalError as e:
+        logging.error("Error connecting to PostgreSQL Database: {}".format(e))
     return connection
 
 def fetch_programs_info(connection):
     """Fetch programs information from the database."""
-    cursor = connection.cursor(dictionary=True)
+    cursor = connection.cursor(cursor_factory=psycopg2.extras.DictCursor)
     query = "SELECT name, title, info, command, admin_required FROM scripts"
     try:
         cursor.execute(query)
         result = cursor.fetchall()
+        logging.info("Fetched programs information successfully")
         return {item['name']: item for item in result}
-    except Error as e:
-        print(f"Error fetching data from MySQL table: {e}")
+    except (OperationalError, psycopg2.Error) as e:
+        logging.error("Error fetching data from PostgreSQL table: {}".format(e))
         return {}
 
 class MyApp(QMainWindow):
@@ -121,11 +124,14 @@ class MyApp(QMainWindow):
             connection.close()
         else:
             self.programs_info = {}
+            logging.error("Failed to create database connection.")
+            self.display_error_message("Failed to connect to the database or fetch information.")
 
         for program in self.programs_info:
             self.listbox.addItem(program)
-        home_page_index = list(self.programs_info.keys()).index("Home Page")
-        self.listbox.setCurrentRow(home_page_index)
+        if self.programs_info:
+            home_page_index = list(self.programs_info.keys()).index("Home Page")
+            self.listbox.setCurrentRow(home_page_index)
 
         # Connect Signals and Slots
         self.listbox.currentItemChanged.connect(self.show_program_details)
@@ -135,6 +141,12 @@ class MyApp(QMainWindow):
 
         # Thread pool for running multiple scripts concurrently
         self.thread_pool = QThreadPool()
+
+    def display_error_message(self, message):
+        error_label = QLabel(message, self)
+        error_label.setStyleSheet("color: red; font-size: 20px; font-weight: bold;")
+        error_label.setGeometry(10, 10, 780, 40)
+        error_label.show()
 
     def center_on_screen(self):
         frame_geometry = self.frameGeometry()
@@ -152,8 +164,9 @@ class MyApp(QMainWindow):
 
             self.run_button.setVisible(selected_program != "Home Page")
             self.run_button.command = program_info['command']
+            logging.info("Displayed program details for: {}".format(selected_program))
         except Exception as e:
-            print(f"Error showing program details: {e}")
+            logging.error("Error showing program details: {}".format(e))
 
     def update_listbox(self, text):
         try:
@@ -163,8 +176,9 @@ class MyApp(QMainWindow):
             for program, program_info in self.programs_info.items():
                 if search_term in program.lower():
                     self.listbox.addItem(program)
+            logging.info("Updated listbox with search term: {}".format(text))
         except Exception as e:
-            print(f"Error updating listbox: {e}")
+            logging.error("Error updating listbox: {}".format(e))
 
     def run_command(self):
         try:
@@ -174,16 +188,16 @@ class MyApp(QMainWindow):
             admin_required = program_info['admin_required']
 
             if command:
-                print(f"Running command: {command}")
+                logging.info("Running command: {}".format(command))
                 self.run_button.setText("Running...")
                 runnable = CommandRunner(command, admin_required)
                 self.thread_pool.start(runnable)
                 QTimer.singleShot(17000, lambda: self.run_button.setText("Run"))
 
             else:
-                print("No command to run.")
+                logging.info("No command to run.")
         except Exception as e:
-            print(f"Error running command: {e}")
+            logging.error("Error running command: {}".format(e))
 
 class CommandRunner(QRunnable):
     def __init__(self, command, admin_required):
@@ -196,9 +210,11 @@ class CommandRunner(QRunnable):
             run_with_uac(self.command)
         else:
             subprocess.Popen(self.command, shell=True)
+        logging.info("Executed command: {}".format(self.command))
 
 def run_with_uac(command):
     subprocess.Popen(command, shell=True)
+    logging.info("Executed command with UAC: {}".format(command))
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
