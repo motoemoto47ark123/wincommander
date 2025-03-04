@@ -9,12 +9,12 @@
             "notes": "This will reset all Task Manager settings including column layouts, window size, and view preferences. Task Manager must be restarted after running this command."
         },
         {
-            "name": "Reset File Explorer",
-            "description": "Reset File Explorer to default Windows settings",
-            "command": "taskkill /F /IM explorer.exe && reg delete \"HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\" /f && reg delete \"HKCU\\Software\\Microsoft\\Windows\\Shell\\BagMRU\" /f && reg delete \"HKCU\\Software\\Microsoft\\Windows\\Shell\\Bags\" /f && reg delete \"HKCU\\Software\\Microsoft\\Windows\\ShellNoRoam\\Bags\" /f && reg delete \"HKCU\\Software\\Microsoft\\Windows\\ShellNoRoam\\BagMRU\" /f && reg delete \"HKCU\\Software\\Classes\\Local Settings\\Software\\Microsoft\\Windows\\Shell\\BagMRU\" /f && reg delete \"HKCU\\Software\\Classes\\Local Settings\\Software\\Microsoft\\Windows\\Shell\\Bags\" /f && start explorer.exe",
-            "admin_required": true,
-            "category": "system",
-            "notes": "This will reset File Explorer settings including view preferences, folder positions, and navigation pane settings. File Explorer will be restarted automatically."
+            "name": "Restart File Explorer",
+            "description": "Restart Windows File Explorer process",
+            "command": "taskkill /F /IM explorer.exe && start explorer.exe",
+            "admin_required": false,
+            "category": "system", 
+            "notes": "This will restart File Explorer which can help resolve issues with the taskbar, desktop, or file browsing. Your desktop will briefly disappear during the restart."
         },
         {
             "name": "Clear DNS Cache",
