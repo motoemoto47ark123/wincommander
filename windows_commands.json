@@ -3,10 +3,10 @@
         {
             "name": "Reset Task Manager",
             "description": "Reset Task Manager to default Windows installation state",
-            "command": "reg delete \"HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\TaskManager\" /f",
+            "command": "taskkill /F /IM taskmgr.exe >nul 2>&1 && reg delete \"HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\TaskManager\" /f && start taskmgr.exe",
             "admin_required": true,
             "category": "system",
-            "notes": "This will reset all Task Manager settings including column layouts, window size, and view preferences. Task Manager must be restarted after running this command."
+            "notes": "This will reset all Task Manager settings including column layouts, window size, and view preferences. The command also automatically closes and reopens Task Manager for you."
         },
         {
             "name": "Restart File Explorer",
@@ -19,50 +19,58 @@
         {
             "name": "Clear DNS Cache",
             "description": "Clear Windows DNS resolver cache",
-            "command": "ipconfig /flushdns",
+            "command": "ipconfig /flushdns && echo DNS cache successfully cleared!",
             "admin_required": true,
             "category": "network",
-            "notes": "Useful when experiencing website loading issues or after changing DNS settings."
+            "notes": "Useful when experiencing website loading issues or after changing DNS settings. Clears stored DNS records to ensure fresh lookups."
         },
         {
             "name": "Reset Network Stack",
-            "description": "Reset all Windows networking components",
-            "command": "netsh winsock reset && netsh int ip reset && ipconfig /release && ipconfig /renew && ipconfig /flushdns",
+            "description": "Full reset of Windows networking components",
+            "command": "ipconfig /release >nul 2>&1 && netsh winsock reset && netsh int ip reset && netsh advfirewall reset && ipconfig /renew && ipconfig /flushdns && echo Network stack successfully reset!",
             "admin_required": true,
             "category": "network",
-            "notes": "This will reset all network adapters and settings. Your internet connection will be temporarily disrupted during this process."
+            "notes": "This comprehensive command resets all network adapters, Winsock catalog, TCP/IP stack, Windows Firewall settings, and renews IP addresses. Your internet connection will be temporarily disrupted."
         },
         {
             "name": "System File Check",
             "description": "Scan and repair Windows system files",
-            "command": "sfc /scannow",
+            "command": "sfc /scannow && DISM /Online /Cleanup-Image /RestoreHealth",
             "admin_required": true,
             "category": "maintenance",
-            "notes": "This scan may take several minutes to complete. The system will attempt to repair any corrupted system files it finds."
+            "notes": "Performs a full system integrity check and repairs corrupted files. Additionally runs the Deployment Image Servicing and Management tool to repair the Windows image. This process may take 15-30 minutes."
         },
         {
             "name": "Check Disk",
-            "description": "Check disk for errors and attempt repairs",
-            "command": "chkdsk C: /f /r",
+            "description": "Comprehensive disk check and repair",
+            "command": "chkdsk C: /f /r /x",
             "admin_required": true,
             "category": "maintenance",
-            "notes": "This will schedule a disk check on next system restart. The process may take several minutes to complete depending on disk size."
+            "notes": "Performs an advanced disk check that fixes file system errors (/f), locates bad sectors (/r), and forces the volume to dismount if necessary (/x). Will require a system restart to complete."
         },
         {
-            "name": "Clear Temp Files",
-            "description": "Remove temporary files from Windows",
-            "command": "del /s /f /q %temp% && del /s /f /q C:\\Windows\\Temp",
-            "admin_required": false,
+            "name": "Advanced Temp File Cleanup",
+            "description": "Remove all temporary files from Windows",
+            "command": "del /s /f /q %temp%\\* && del /s /f /q %systemroot%\\Temp\\* && del /s /f /q C:\\Windows\\Prefetch\\* && cleanmgr /sagerun:1",
+            "admin_required": true,
             "category": "cleanup",
-            "notes": "This will remove temporary files to free up disk space. Some files may be in use and cannot be deleted."
+            "notes": "Performs a thorough cleanup of temporary files from multiple locations and launches the built-in Disk Cleanup utility with preset options. This can free up significant disk space."
         },
         {
             "name": "Reset Print Spooler",
             "description": "Reset the Windows Print Spooler service",
-            "command": "net stop spooler && del /F /S /Q %systemroot%\\System32\\spool\\PRINTERS\\* && net start spooler",
+            "command": "net stop spooler && del /F /S /Q %systemroot%\\System32\\spool\\PRINTERS\\* && net start spooler && echo Print Spooler service successfully restarted!",
             "admin_required": true,
             "category": "system",
-            "notes": "This will clear the print queue and restart the print spooler service. Use this when experiencing printing issues."
+            "notes": "Stops the print spooler service, clears all pending print jobs, and restarts the service. Useful for resolving stuck print jobs and general printing problems."
+        },
+        {
+            "name": "Restart Sound Services",
+            "description": "Restart all Windows audio services",
+            "command": "net stop Audiosrv && net stop AudioEndpointBuilder && net start AudioEndpointBuilder && net start Audiosrv && echo Audio services successfully restarted!",
+            "admin_required": true,
+            "category": "system",
+            "notes": "Restarts the Windows Audio and Windows Audio Endpoint Builder services. This can resolve common sound issues such as no audio, distorted sound, or audio device detection problems."
         }
     ]
 } 
