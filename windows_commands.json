@@ -1,0 +1,12 @@
+{
+    "commands": [
+        {
+            "name": "reset_task_manager",
+            "description": "Reset Task Manager to default Windows installation state",
+            "command": "reg delete \"HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\TaskManager\" /f",
+            "admin_required": true,
+            "category": "system",
+            "notes": "This will reset all Task Manager settings including column layouts, window size, and view preferences. Task Manager must be restarted after running this command."
+        }
+    ]
+} 
