@@ -1,12 +1,68 @@
 {
     "commands": [
         {
-            "name": "reset_task_manager",
+            "name": "Reset Task Manager",
             "description": "Reset Task Manager to default Windows installation state",
             "command": "reg delete \"HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\TaskManager\" /f",
             "admin_required": true,
             "category": "system",
             "notes": "This will reset all Task Manager settings including column layouts, window size, and view preferences. Task Manager must be restarted after running this command."
+        },
+        {
+            "name": "Reset File Explorer",
+            "description": "Reset File Explorer to default Windows settings",
+            "command": "taskkill /F /IM explorer.exe && reg delete \"HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\" /f && reg delete \"HKCU\\Software\\Microsoft\\Windows\\Shell\\BagMRU\" /f && reg delete \"HKCU\\Software\\Microsoft\\Windows\\Shell\\Bags\" /f && reg delete \"HKCU\\Software\\Microsoft\\Windows\\ShellNoRoam\\Bags\" /f && reg delete \"HKCU\\Software\\Microsoft\\Windows\\ShellNoRoam\\BagMRU\" /f && reg delete \"HKCU\\Software\\Classes\\Local Settings\\Software\\Microsoft\\Windows\\Shell\\BagMRU\" /f && reg delete \"HKCU\\Software\\Classes\\Local Settings\\Software\\Microsoft\\Windows\\Shell\\Bags\" /f && start explorer.exe",
+            "admin_required": true,
+            "category": "system",
+            "notes": "This will reset File Explorer settings including view preferences, folder positions, and navigation pane settings. File Explorer will be restarted automatically."
+        },
+        {
+            "name": "Clear DNS Cache",
+            "description": "Clear Windows DNS resolver cache",
+            "command": "ipconfig /flushdns",
+            "admin_required": true,
+            "category": "network",
+            "notes": "Useful when experiencing website loading issues or after changing DNS settings."
+        },
+        {
+            "name": "Reset Network Stack",
+            "description": "Reset all Windows networking components",
+            "command": "netsh winsock reset && netsh int ip reset && ipconfig /release && ipconfig /renew && ipconfig /flushdns",
+            "admin_required": true,
+            "category": "network",
+            "notes": "This will reset all network adapters and settings. Your internet connection will be temporarily disrupted during this process."
+        },
+        {
+            "name": "System File Check",
+            "description": "Scan and repair Windows system files",
+            "command": "sfc /scannow",
+            "admin_required": true,
+            "category": "maintenance",
+            "notes": "This scan may take several minutes to complete. The system will attempt to repair any corrupted system files it finds."
+        },
+        {
+            "name": "Check Disk",
+            "description": "Check disk for errors and attempt repairs",
+            "command": "chkdsk C: /f /r",
+            "admin_required": true,
+            "category": "maintenance",
+            "notes": "This will schedule a disk check on next system restart. The process may take several minutes to complete depending on disk size."
+        },
+        {
+            "name": "Clear Temp Files",
+            "description": "Remove temporary files from Windows",
+            "command": "del /s /f /q %temp% && del /s /f /q C:\\Windows\\Temp",
+            "admin_required": false,
+            "category": "cleanup",
+            "notes": "This will remove temporary files to free up disk space. Some files may be in use and cannot be deleted."
+        },
+        {
+            "name": "Reset Print Spooler",
+            "description": "Reset the Windows Print Spooler service",
+            "command": "net stop spooler && del /F /S /Q %systemroot%\\System32\\spool\\PRINTERS\\* && net start spooler",
+            "admin_required": true,
+            "category": "system",
+            "notes": "This will clear the print queue and restart the print spooler service. Use this when experiencing printing issues."
         }
     ]
 } 
