@@ -27,10 +27,6 @@ When you open the application, you will see a list of commands on the left side.
 
 Some commands require administrator privileges to run properly. The app will prompt for elevation when needed.
 
-## Contributing
-
-Pull requests are welcome. For major changes, please open an issue first to discuss what you would like to change.
-
 ## Building from Source
 
 If you'd like to build WinCommander from source:
@@ -38,3 +34,7 @@ If you'd like to build WinCommander from source:
 1. Clone this repository
 2. Install the dependencies: `pip install -r requirements.txt`
 3. Run the application: `python wincommander.py`
+
+## Contributing
+
+Pull requests are welcome. For major changes, please open an issue first to discuss what you would like to change.
