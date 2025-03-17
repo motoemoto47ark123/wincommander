@@ -1,13 +1,15 @@
 # WinCommander
 
-WinCommander is a Python-based application that helps you manage and run various scripts to fix common issues on Windows.
+WinCommander is a Python-based application that helps you manage and run various Windows commands to fix common issues.
 
 ## Features
 
-- List of common scripts to fix issues on Windows.
-- Detailed information about each script.
-- Ability to run scripts with a single click.
-- Search functionality to quickly find the script you need.
+- List of useful Windows commands to fix common issues.
+- Detailed information about each command.
+- Ability to run commands with a single click.
+- Search functionality to quickly find the command you need.
+- Category filters to organize commands.
+- Online command database that's always up-to-date.
 
 ## Installation
 
@@ -19,12 +21,20 @@ To install the application, follow these steps:
 2. Extract the ZIP file to your desired location.
 3. Run `wincommander.exe`.
 
-**Warning:** This application requires administrator privileges to run correctly. When you run `wincommander.exe`, you will be prompted to allow the application to make changes to your device. Please click 'Yes' to ensure the application functions correctly.
-
 ## Usage
 
-When you open the application, you will see a list of scripts on the left side. You can select a script to view its details on the right side. If you want to run a script, click the 'Run' button.
+When you open the application, you will see a list of commands on the left side. You can select a command to view its details on the right side. If you want to run a command, click the 'Execute Command' button.
+
+Some commands require administrator privileges to run properly. The app will prompt for elevation when needed.
 
 ## Contributing
 
 Pull requests are welcome. For major changes, please open an issue first to discuss what you would like to change.
+
+## Building from Source
+
+If you'd like to build WinCommander from source:
+
+1. Clone this repository
+2. Install the dependencies: `pip install -r requirements.txt`
+3. Run the application: `python wincommander.py`
