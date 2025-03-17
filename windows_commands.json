@@ -71,6 +71,14 @@
             "admin_required": true,
             "category": "system",
             "notes": "Restarts the Windows Audio and Windows Audio Endpoint Builder services. This can resolve common sound issues such as no audio, distorted sound, or audio device detection problems."
+        },
+        {
+            "name": "Force Close All Windows",
+            "description": "Close all open applications and restart File Explorer",
+            "command": "powershell -command \"Get-Process | Where-Object {$_.MainWindowTitle -ne \\\"\\\" -and $_.ProcessName -ne 'wincommander'} | Stop-Process -Force\" && taskkill /F /IM explorer.exe && start explorer.exe",
+            "admin_required": true,
+            "category": "system",
+            "notes": "This will forcefully close all open windows and restart Windows Explorer. Use with caution as unsaved data in applications will be lost. This operation excludes the WinCommander window itself so you can see the results."
         }
     ]
 } 

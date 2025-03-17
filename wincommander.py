@@ -71,31 +71,20 @@ def load_commands_from_json():
             data = json.loads(json_data)
             commands = data.get('commands', [])
             
+            logging.info(f"Successfully loaded {len(commands)} commands from online source")
+            
             # Process the commands as before
             return {cmd['name']: {
                 'title': cmd['name'],
                 'info': cmd['description'] + "\n\n" + cmd['notes'],
                 'command': cmd['command'],
-                'admin_required': cmd['admin_required']
+                'admin_required': cmd['admin_required'],
+                'category': cmd.get('category', 'system').lower()
             } for cmd in commands}
     
     except Exception as e:
         logging.error(f"Error loading commands from web: {e}")
-        # Attempt to load from local file as fallback
-        try:
-            with open('windows_commands.json', 'r') as file:
-                data = json.load(file)
-                commands = data.get('commands', [])
-                logging.info("Loaded commands from local file as fallback")
-                return {cmd['name']: {
-                    'title': cmd['name'],
-                    'info': cmd['description'] + "\n\n" + cmd['notes'],
-                    'command': cmd['command'],
-                    'admin_required': cmd['admin_required']
-                } for cmd in commands}
-        except Exception as local_error:
-            logging.error(f"Error loading commands from local file: {local_error}")
-            return {}
+        return {}
 
 class CommandSignals(QObject):
     finished = pyqtSignal()
@@ -790,26 +779,13 @@ class MyApp(QMainWindow):
             }
         }
 
-        # Load commands from JSON file
-        commands_loaded = False
-        try:
-            with open('windows_commands.json', 'r') as file:
-                data = json.load(file)
-                commands = data.get('commands', [])
-                # Sort commands by name for consistent ordering
-                commands.sort(key=lambda x: x['name'])
-                for cmd in commands:
-                    self.programs_info[cmd['name']] = {
-                        'title': cmd['name'],
-                        'info': cmd['description'] + "\n\n" + cmd['notes'],
-                        'command': cmd['command'],
-                        'admin_required': cmd['admin_required'],
-                        'category': cmd.get('category', 'system').lower()
-                    }
-                logging.info(f"Successfully loaded {len(commands)} commands from JSON file")
-                commands_loaded = True
-        except Exception as e:
-            error_msg = f"Error loading commands from JSON file: {e}"
+        # Load commands from online JSON
+        commands = load_commands_from_json()
+        if commands:
+            self.programs_info.update(commands)
+            logging.info(f"Successfully loaded {len(commands)} commands")
+        else:
+            error_msg = "Failed to load commands from online source"
             logging.error(error_msg)
             self.display_error_message(error_msg)
             # Mark the run button as failed

@@ -1,0 +1,21 @@
+# Build and distribution directories
+dist/
+build/
+
+# Python cache files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environment
+venv/
+env/
+ENV/
+
+# Windows specific files
+*.exe
+*.dll
+*.pyd
+*.bat
+*.cmd
+*.ps1 
