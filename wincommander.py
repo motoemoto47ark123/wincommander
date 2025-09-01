@@ -925,10 +925,10 @@ class MyApp(QMainWindow):
         self.label_title.setText(program_info.get('title', 'Unknown'))
         
         # Format the info text with some styling
-        info = program_info.get('info', '')
+        info = program_info.get('info', '').replace("\n", "<br>")
         self.info_text.setHtml(f"""
             <div style="color: #cdd6f4; font-size: 14px; line-height: 1.5;">
-                {info.replace("\n", "<br>")}
+                {info}
             </div>
         """)
         
